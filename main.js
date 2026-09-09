@@ -1,36 +1,11 @@
 // CONNECT
 import { joinRoom } from './vendor/trystero/trystero-nostr.min.js';
+import { connectMultiplayer } from './multiplayer.js';
+
 const config = { appId: 'kakkoi-game-app' };
 const room = joinRoom(config, 'kakkoi-lobby');
-console.dir(room);
 const peers = {};
-
-//const [sendMove, getMove] = room.makeAction('move');
-const [sendMove, onMove] = room.makeAction('move');
-
-onMove((data, peerId) => {
-    peers[peerId] = data;
-});
-
-//console.log(typeof sendMove);
-//console.log(typeof getMove);
-
-//console.dir(sendMove);
-//console.dir(getMove);
-
-room.onPeerJoin((peerId) => {
-    console.log(`${peerId} joined`);
-    peers[peerId] = {
-        x: 100,
-        y: 100,
-        color: '#ffaa00'
-    };
-});
-
-room.onPeerLeave((peerId) => {
-    console.log(`${peerId} left`);
-    delete peers[peerId];
-});
+const { sendMove } = connectMultiplayer(room, peers);
 
 // かっこいいゲームのメインスクリプト
 console.dir("main.js が読み込まれました！");
