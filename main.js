@@ -6,15 +6,11 @@ console.dir(room);
 const peers = {};
 
 //const [sendMove, getMove] = room.makeAction('move');
-const action = room.makeAction('move');
+const [sendMove, onMove] = room.makeAction('move');
 
-//console.dir(action);
-//console.dir(action.onMessage);
-
-const sendMove = action.send;
-action.onMessage = (data, { peerId }) => {
+onMove((data, peerId) => {
     peers[peerId] = data;
-};
+});
 
 //console.log(typeof sendMove);
 //console.log(typeof getMove);
@@ -22,19 +18,19 @@ action.onMessage = (data, { peerId }) => {
 //console.dir(sendMove);
 //console.dir(getMove);
 
-room.onPeerJoin = (peerId) => {
+room.onPeerJoin((peerId) => {
     console.log(`${peerId} joined`);
     peers[peerId] = {
         x: 100,
         y: 100,
         color: '#ffaa00'
     };
-};
+});
 
-room.onPeerLeave = (peerId) => {
+room.onPeerLeave((peerId) => {
     console.log(`${peerId} left`);
     delete peers[peerId];
-};
+});
 
 // かっこいいゲームのメインスクリプト
 console.dir("main.js が読み込まれました！");
