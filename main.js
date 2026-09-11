@@ -1,8 +1,20 @@
 // CONNECT
-import { joinRoom } from './vendor/trystero/trystero-nostr.min.js';
+import { joinRoom } from './vendor/trystero/nostr.js';
 import { connectMultiplayer } from './multiplayer.js';
 
-const config = { appId: 'kakkoi-game-app' };
+// Keep the multiplayer transport identical to the known-working kakkoi-online
+// master implementation: Trystero 0.21.5 plus the same tested Nostr relays.
+const config = {
+    appId: 'kakkoi-game-app',
+    relayUrls: [
+        'wss://relay.snort.social',
+        'wss://nostr.sathoarder.com',
+        'wss://nostr.vulpem.com',
+        'wss://relay.primal.net',
+        'wss://nostr.mom',
+        'wss://offchain.pub'
+    ]
+};
 const room = joinRoom(config, 'kakkoi-lobby');
 const peers = {};
 const { sendMove } = connectMultiplayer(room, peers);
