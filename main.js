@@ -2,7 +2,16 @@
 import { joinRoom } from './vendor/trystero/trystero-nostr.min.js';
 import { connectMultiplayer } from './multiplayer.js';
 
-const config = { appId: 'kakkoi-game-app' };
+// STUN だけだと同一LAN内（ローカル）では繋がるが、インターネット越しの
+// 対称NAT環境では繋がらない。TURN サーバーを足すとその場合は中継して接続できる。
+const config = {
+    appId: 'kakkoi-game-app',
+    turnConfig: [
+        { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+        { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+        { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
+    ]
+};
 const room = joinRoom(config, 'kakkoi-lobby');
 const peers = {};
 const { sendMove } = connectMultiplayer(room, peers);
