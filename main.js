@@ -2,10 +2,26 @@
 import { joinRoom } from './vendor/trystero/trystero-nostr.min.js';
 import { connectMultiplayer } from './multiplayer.js';
 
-// STUN だけだと同一LAN内（ローカル）では繋がるが、インターネット越しの
-// 対称NAT環境では繋がらない。TURN サーバーを足すとその場合は中継して接続できる。
+// デフォルトの relay（掲示板）一覧は死んでいる・ブロックされるものが多く、
+// そのせいでインターネット越しの相手を見つけられない。動くことが確認済みの
+// 掲示板を明示する（kakkoi-online と同じリスト）。
+// この trystero のバージョンは config キーが relayUrls ではなく
+// relayConfig.urls になっている点に注意。
 const config = {
     appId: 'kakkoi-game-app',
+    relayConfig: {
+        urls: [
+            'wss://relay.snort.social',
+            'wss://nostr.sathoarder.com',
+            'wss://nostr.vulpem.com',
+            'wss://relay.primal.net',
+            'wss://nostr.mom',
+            'wss://offchain.pub'
+        ],
+        redundancy: 6
+    },
+    // TURN は NAT 越えに失敗したときの中継用。なくても大抵は繋がるが、
+    // 対称NAT同士などの場合に効く。
     turnConfig: [
         { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
         { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
