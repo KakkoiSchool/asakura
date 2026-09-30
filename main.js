@@ -1,6 +1,8 @@
 // CONNECT
-import { joinRoom } from './vendor/trystero/nostr.js';
-import { connectMultiplayer } from './multiplayer.js';
+// ?v= はブラウザキャッシュ避け。ファイルを変えたら index.html と合わせて番号を上げる。
+// 古い版と新しい版の trystero は互いに相手を見つけられない。
+import { joinRoom } from './vendor/trystero/nostr.js?v=2026-09-23a';
+import { connectMultiplayer } from './multiplayer.js?v=2026-09-23a';
 
 // Keep the multiplayer transport identical to the known-working kakkoi-online
 // master implementation: Trystero 0.21.5 plus the same tested Nostr relays.
