@@ -3,13 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kakkoi-Game</title>
+    <title>kakkoi-hockey</title>
     <style>
+        @keyframes pastelGradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
         body {
             margin: 0;
             padding: 0;
-            background-color: #1a1a1a;
-            color: #ffffff;
+            background: linear-gradient(-45deg, #e0c3fc, #8ec5fc, #fbc2eb, #a1c4fd, #c2e9fb, #d4fc79, #96e6a1);
+            background-size: 400% 400%;
+            animation: pastelGradient 24s ease infinite;
+            color: #1e293b;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
@@ -17,76 +31,80 @@
             justify-content: center;
             height: 100vh;
             overflow: hidden;
+            user-select: none;
         }
+
         h1 {
             font-size: 3rem;
-            text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
-            margin-bottom: 20px;
+            margin: 0 0 10px 0;
+            letter-spacing: 2px;
+            color: #0f172a;
+            text-shadow: 0 0 15px rgba(0, 240, 255, 0.8), 0 0 30px rgba(255, 0, 127, 0.5);
+            font-style: italic;
         }
+
+        #build {
+            color: rgba(30, 41, 59, 0.7);
+            font-size: 12px;
+            margin: 0 0 12px 0;
+            font-weight: 500;
+        }
+
         #game-container {
             width: 800px;
             height: 600px;
-            border: 4px solid #00ffcc;
-            box-shadow: 0 0 20px #00ffcc;
-            background-color: #000;
+            border: 4px solid rgba(0, 240, 255, 0.8);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25), 0 0 25px rgba(0, 240, 255, 0.4);
+            background-color: #0b0f19;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
         }
-        #save-btn {
-            background: transparent;
-            border: 2px solid #ff0055;
-            color: #ff0055;
-            padding: 8px 20px;
-            font-size: 16px;
-            font-weight: bold;
-            font-family: inherit;
-            cursor: pointer;
-            box-shadow: 0 0 8px #ff0055;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-        #save-btn:hover {
-            background: #ff0055;
-            color: #ffffff;
-            box-shadow: 0 0 18px #ff0055;
-        }
-        #load-btn {
-            background: transparent;
-            border: 2px solid #00ffcc;
-            color: #00ffcc;
-            padding: 8px 20px;
-            font-size: 16px;
-            font-weight: bold;
-            font-family: inherit;
-            cursor: pointer;
-            box-shadow: 0 0 8px #00ffcc;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-        #load-btn:hover {
-            background: #00ffcc;
-            color: #000000;
-            box-shadow: 0 0 18px #00ffcc;
-        }
+
         .btn-container {
-            margin-top: 15px;
+            margin-top: 16px;
             display: flex;
             gap: 15px;
+        }
+
+        #reset-btn {
+            background: rgba(15, 23, 42, 0.85);
+            border: 2px solid #00f0ff;
+            color: #00f0ff;
+            padding: 10px 28px;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            letter-spacing: 1px;
+        }
+
+        #reset-btn:hover {
+            background: #00f0ff;
+            color: #0f172a;
+            box-shadow: 0 0 22px rgba(0, 240, 255, 0.9);
+            transform: translateY(-2px);
+        }
+
+        #reset-btn:active {
+            transform: translateY(0);
         }
     </style>
 </head>
 <body>
-    <h1>kakkoi-game</h1>
-    <p id="build" style="color:#666;font-size:12px;margin:0">build 2026-09-23a</p>
+    <h1>kakkoi-hockey</h1>
+    <p id="build">build 2026-10-03b</p>
     <div id="game-container">
         <canvas id="world" width="640" height="480"></canvas>
     </div>
     <div class="btn-container">
-        <button id="save-btn">セーブ (Save)</button>
-        <button id="load-btn">ロード (Load)</button>
+        <button id="reset-btn">RESET (ゲームリセット)</button>
     </div>
-    <script type="module" src="main.js?v=2026-09-23a"></script>
+    <script type="module" src="main.js?v=2026-10-03b"></script>
 </body>
 </html>
