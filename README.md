@@ -37,22 +37,24 @@ HTML の Canvas と JavaScript だけで作られたゲームです。インス�
 
 ### マルチプレイ（サーバーなし）
 
-[Trystero](https://github.com/dmotz/trystero)（`vendor/trystero/` に同梱、v0.21.5 の Nostr 版）を使った
-ピアツーピア通信です。**ゲーム用のサーバーはありません。** だから GitHub Pages のような、
-ファイルを置くだけのホスティングで動きます。
+[`p2p-core`](https://github.com/KakkoiDev/p2p-core) v0.1.0 を使ったピアツーピア通信です。
+ゲーム用の常設サーバーはなく、GitHub Pages のまま動きます。ライブラリはタグを固定した
+jsDelivr URL から ES module として読み込みます。
 
-1. ページを開くと、`kakkoi-lobby` という部屋に入ります（appId は `kakkoi-game-app`）。
-   このページを開いている人は全員同じ部屋です。
-2. 相手を見つけるための最初のあいさつ（シグナリング）だけ、公開の Nostr リレーを使います
-   （`main.js` の `relayUrls`）。
-3. つながった後は、ブラウザ同士が WebRTC で直接データを送り合います。
-   STUN サーバー（Google、Cloudflare）は通り道を見つけるためだけに使われます。
-4. 送るもの: 自分の位置と色（1秒に10回）、パックの位置と速さ（打ったとき・ゴールのとき）、
-   スコア、リセット。パックはそれぞれのブラウザで動いていて、これらの合図で揃えられます。
+1. ページを開くと `kakkoi-game-app / kakkoi-lobby` に入ります。
+2. 同じブラウザでは BroadcastChannel、インターネット越しでは共有 Nostr リレー群で相手を見つけ、
+   WebRTC で直接つながります。
+3. 画面上部に接続状態と応答しているリレー数を表示します。
+4. 自動発見がうまくいかない場合は **PAIR (手動接続)** から QR / コードで WebRTC の接続情報を交換できます。
+5. 自分の位置と色は1秒に10回、ほかにパック、スコア、リセットを同期します。
 
-通信のつなぎ込みは `multiplayer.js` にまとまっていて、Trystero の古い API
-（`[send, on]` の配列）と v0.20 以降の API（`{ send, onMessage }`）の両方に対応しています。
-リレーにつながらないときも、一人で遊べます。
+**別ネットワークについて:** STUN だけでは、携帯回線・会社/学校ネットワーク・対称 NAT など
+一部の組み合わせで直接 WebRTC 接続を作れません。その場合は相手をリレーする **TURN** が必要です。
+`p2p-core` は TURN に対応していますが、この静的サイトには公開してよい TURN 資格情報を埋め込んでいません。
+つまり今回の移行でリレー発見・診断・手動ペアリングは改善しますが、厳しい NAT 同士の接続を100%保証するには
+TURN の追加が次の段階です。
+
+`multiplayer.js` はゲーム側のメッセージ配線だけを担当し、p2p-core の Trystero 互換 API をそのまま利用します。
 
 ### 手元で動かす
 
@@ -86,7 +88,7 @@ Node 22 で動きます。`npm install` は要りません。偽の部屋を使�
 Source を「GitHub Actions」にした後）。
 
 - ページが読み込むファイルを新しく増やしたら、`pages.yml` のコピーの行にも足してください。
-- `main.js` などを変えたら、`index.html` と `main.js` の `?v=2026-10-03b` の番号も上げてください
+- `main.js` などを変えたら、`index.html` と `main.js` の `?v=2026-10-06a` の番号も上げてください
   （ブラウザのキャッシュ対策。`main.js` の先頭のコメントのとおりです）。
 
 ### ファイル
@@ -95,8 +97,8 @@ Source を「GitHub Actions」にした後）。
 |---|---|
 | `index.html` | ページ、見た目、RESET ボタン |
 | `main.js` | ゲーム本体（動き、当たり判定、得点、描画） |
-| `multiplayer.js` | Trystero の部屋とゲームのつなぎ込み |
-| `vendor/trystero/` | 同梱した Trystero |
+| `multiplayer.js` | p2p-core の部屋とゲームのメッセージ配線 |
+| `p2p-core v0.1.0` | CDN から固定バージョンを読み込む通信ライブラリ |
 | `tests/` | `multiplayer.js` のテスト |
 | `0826game.md` | 最初の開発記録 |
 | `docs/` | 作業レポート |
@@ -105,7 +107,7 @@ Source を「GitHub Actions」にした後）。
 
 - **ゲーム**: 朝倉さん。`0826game.md` は、朝倉さんが AI アシスタントと一緒に作り始めたときの開発記録です。
 - **KakkoiSchool** のプロジェクトです。
-- **通信**: [Trystero](https://github.com/dmotz/trystero)（Dan Motzenbecker、MIT License）。
+- **通信**: [p2p-core](https://github.com/KakkoiDev/p2p-core)（内部で Trystero / WebRTC を利用、MIT License）。
 
 ---
 
@@ -142,23 +144,24 @@ See "Found along the way" in [docs/REPORT-2026-10-03.md](docs/REPORT-2026-10-03.
 
 ### Multiplayer (no server)
 
-Peer-to-peer through [Trystero](https://github.com/dmotz/trystero) (vendored in
-`vendor/trystero/`, v0.21.5, Nostr strategy). **There is no game server**, which is why plain
-static hosting such as GitHub Pages is enough.
+Peer-to-peer networking now uses [`p2p-core`](https://github.com/KakkoiDev/p2p-core) v0.1.0.
+There is still no permanent game server, so the game remains a static GitHub Pages site. The
+library is loaded as a pinned ES module from jsDelivr.
 
-1. Opening the page joins the room `kakkoi-lobby` (app id `kakkoi-game-app`).
-   Everyone who has the page open is in the same room.
-2. Only the first handshake (signalling, to find each other) goes through public Nostr relays
-   (`relayUrls` in `main.js`).
-3. After that, browsers talk to each other directly over WebRTC. STUN servers (Google,
-   Cloudflare) are only used to find a network path.
-4. What is sent: your position and colour (10 times a second), the puck's position and speed
-   (on a hit or a goal), the score, and resets. Each browser moves its own puck, and these
-   messages bring them back in line.
+1. Opening the page joins `kakkoi-game-app / kakkoi-lobby`.
+2. Tabs in the same browser can meet through BroadcastChannel. Across the internet, the shared
+   Nostr relay pool performs discovery and WebRTC carries the game data directly.
+3. The page shows connection status and how many public relays are answering.
+4. If automatic discovery fails, **PAIR** exchanges WebRTC connection data by QR/code.
+5. Position/colour is sent 10 times a second; puck, score and reset events are also synchronized.
 
-`multiplayer.js` holds the wiring and works with both Trystero APIs: the older
-`[send, on]` pair and the v0.20+ `{ send, onMessage }` object.
-If no relay can be reached, the game still plays solo.
+**Across different networks:** STUN cannot establish a direct WebRTC path for every NAT/firewall
+combination. Mobile carriers, office/school networks and symmetric NATs may require a **TURN**
+relay. p2p-core supports TURN, but this static site intentionally does not embed reusable TURN
+credentials. This migration improves discovery, diagnostics and manual pairing; reliable connectivity
+through the strictest networks will require TURN as the next step.
+
+`multiplayer.js` remains the game-message adapter and uses p2p-core's Trystero-compatible API.
 
 ### Run it locally
 
@@ -192,7 +195,7 @@ The game is then at <https://kakkoischool.github.io/asakura/> (once Settings →
 Source is set to "GitHub Actions").
 
 - If the page starts loading a new file, add it to the copy line in `pages.yml` too.
-- After changing `main.js` or friends, bump the `?v=2026-10-03b` number in both `index.html`
+- After changing `main.js` or friends, bump the `?v=2026-10-06a` number in both `index.html`
   and `main.js` so browsers do not keep the old copy (as the comment at the top of `main.js` says).
 
 ### Files
@@ -201,8 +204,8 @@ Source is set to "GitHub Actions").
 |---|---|
 | `index.html` | The page, its look, the RESET button |
 | `main.js` | The game: movement, collisions, scoring, drawing |
-| `multiplayer.js` | Wiring between the Trystero room and the game |
-| `vendor/trystero/` | Vendored Trystero |
+| `multiplayer.js` | Wiring between the p2p-core room and the game |
+| `p2p-core v0.1.0` | Pinned networking library loaded from CDN |
 | `tests/` | Tests for `multiplayer.js` |
 | `0826game.md` | The original development log |
 | `docs/` | Work reports |
@@ -212,4 +215,4 @@ Source is set to "GitHub Actions").
 - **Game**: Asakura-san (朝倉さん). `0826game.md` is the log of how Asakura-san started it,
   working with an AI assistant.
 - A **KakkoiSchool** project.
-- **Networking**: [Trystero](https://github.com/dmotz/trystero) by Dan Motzenbecker, MIT License.
+- **Networking**: [p2p-core](https://github.com/KakkoiDev/p2p-core), built on Trystero/WebRTC (MIT License).

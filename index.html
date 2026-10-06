@@ -69,7 +69,8 @@
             gap: 15px;
         }
 
-        #reset-btn {
+        #reset-btn,
+        #pair-btn {
             background: rgba(15, 23, 42, 0.85);
             border: 2px solid #00f0ff;
             color: #00f0ff;
@@ -84,27 +85,58 @@
             letter-spacing: 1px;
         }
 
+        #pair-btn {
+            border-color: #ff007f;
+            color: #ff007f;
+            box-shadow: 0 0 12px rgba(255, 0, 127, 0.35);
+        }
+
+        #reset-btn:hover,
+        #pair-btn:hover {
+            transform: translateY(-2px);
+        }
+
         #reset-btn:hover {
             background: #00f0ff;
             color: #0f172a;
             box-shadow: 0 0 22px rgba(0, 240, 255, 0.9);
-            transform: translateY(-2px);
         }
 
-        #reset-btn:active {
+        #pair-btn:hover {
+            background: #ff007f;
+            color: #0f172a;
+            box-shadow: 0 0 22px rgba(255, 0, 127, 0.8);
+        }
+
+        #reset-btn:active,
+        #pair-btn:active {
             transform: translateY(0);
+        }
+
+        #network-status {
+            white-space: nowrap;
+        }
+
+        #network-status[data-state="connected"] {
+            color: #087f5b;
+        }
+
+        #network-status[data-state="warning"] {
+            color: #b42318;
+            font-weight: 700;
         }
     </style>
 </head>
 <body>
     <h1>kakkoi-hockey</h1>
-    <p id="build">build 2026-10-03b</p>
+    <p id="build">build 2026-10-06a · <span id="network-status">P2P · CONNECTING…</span></p>
     <div id="game-container">
         <canvas id="world" width="640" height="480"></canvas>
     </div>
     <div class="btn-container">
         <button id="reset-btn">RESET (ゲームリセット)</button>
+        <button id="pair-btn">PAIR (手動接続)</button>
     </div>
-    <script type="module" src="main.js?v=2026-10-03b"></script>
+    <script type="module" src="main.js?v=2026-10-06a"></script>
 </body>
 </html>

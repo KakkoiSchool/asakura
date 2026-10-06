@@ -1,22 +1,110 @@
 // CONNECT
 // ?v= はブラウザキャッシュ避け。ファイルを変えたら index.html と合わせて番号を上げる。
-import { joinRoom } from './vendor/trystero/nostr.js?v=2026-10-03b';
-import { connectMultiplayer } from './multiplayer.js?v=2026-10-03b';
+// p2p-core is pinned so multiplayer behavior does not change underneath the game.
+import { joinRoom } from 'https://cdn.jsdelivr.net/gh/KakkoiDev/p2p-core@v0.1.0/p2p-core.js';
+import { openPairing } from 'https://cdn.jsdelivr.net/gh/KakkoiDev/p2p-core@v0.1.0/extras/pairing-ui.js';
+import { describeStatus, diagnose } from 'https://cdn.jsdelivr.net/gh/KakkoiDev/p2p-core@v0.1.0/extras/status-ui.js';
+import { connectMultiplayer } from './multiplayer.js?v=2026-10-06a';
 
-// Trystero 0.21.5 + Nostr relays
-const config = {
-    appId: 'kakkoi-game-app',
-    relayUrls: [
-        'wss://relay.snort.social',
-        'wss://nostr.sathoarder.com',
-        'wss://nostr.vulpem.com',
-        'wss://relay.primal.net',
-        'wss://nostr.mom',
-        'wss://offchain.pub'
-    ]
-};
-const room = joinRoom(config, 'kakkoi-lobby');
+// p2p-core keeps the existing Trystero/Nostr wire format, but adds the shared
+// relay pool, same-browser/LAN transports, status diagnostics and manual pairing.
+// Cross-network WebRTC still needs TURN on networks that block direct links.
+const room = joinRoom({
+    app: 'kakkoi-game-app',
+    room: 'kakkoi-lobby',
+    mode: 'auto',
+    allow: {
+        sameBrowser: true,
+        sameNetwork: true,
+        otherNetworks: true
+    },
+    kinds: ['move', 'puck', 'score', 'reset'],
+    validate: {
+        move: (data) => Number.isFinite(data?.x) && Number.isFinite(data?.y) && typeof data?.color === 'string',
+        puck: (data) => Number.isFinite(data?.x) && Number.isFinite(data?.y)
+            && Number.isFinite(data?.vx) && Number.isFinite(data?.vy),
+        score: (data) => data && typeof data === 'object',
+        reset: (data) => data && typeof data === 'object'
+    },
+    rateLimit: 60
+});
 const peers = {};
+
+const networkStatus = document.getElementById('network-status');
+const pairBtn = document.getElementById('pair-btn');
+const networkStartedAt = performance.now();
+
+function renderNetworkStatus() {
+    if (!networkStatus) return;
+    const status = room.status();
+    const relays = status.transports?.relays;
+    const issue = diagnose(status, performance.now() - networkStartedAt);
+
+    if (status.peers > 0) {
+        networkStatus.textContent = `ONLINE · ${status.peers + 1} PLAYERS`;
+        networkStatus.dataset.state = 'connected';
+    } else if (issue) {
+        networkStatus.textContent = relays?.open === 0 ? 'P2P · RELAYS BLOCKED' : 'P2P · DIRECT LINK BLOCKED?';
+        networkStatus.dataset.state = 'warning';
+    } else if (relays?.state === 'ready') {
+        networkStatus.textContent = `P2P READY · ${relays.open}/${relays.total} RELAYS`;
+        networkStatus.dataset.state = 'ready';
+    } else {
+        networkStatus.textContent = 'P2P · CONNECTING…';
+        networkStatus.dataset.state = 'connecting';
+    }
+
+    networkStatus.title = issue || describeStatus(status);
+}
+
+room.onStatus(renderNetworkStatus);
+room.onPeerJoin(renderNetworkStatus);
+room.onPeerLeave(renderNetworkStatus);
+room.onError((error) => {
+    console.warn('p2p-core:', error);
+    renderNetworkStatus();
+});
+renderNetworkStatus();
+setInterval(renderNetworkStatus, 5000);
+
+if (pairBtn) {
+    pairBtn.addEventListener('click', async () => {
+        try {
+            const peerId = await openPairing(room, {
+                text: {
+                    title: '手動ペアリング',
+                    intro: '自動接続できないとき、2台をコードで直接つなぎます。',
+                    invite: 'この端末から招待',
+                    join: 'コードで参加',
+                    close: '閉じる',
+                    back: '戻る',
+                    making: '招待コードを作成中…',
+                    inviteShow: 'もう一方の端末で「コードで参加」を選び、このQRコードを読み取ってください。',
+                    copy: 'コードをコピー',
+                    copied: 'コピーしました',
+                    answerPrompt: '相手側に表示された回答コードを読み取るか貼り付けてください。',
+                    scanAnswer: '回答QRを読む',
+                    scanInvite: '招待QRを読む',
+                    pastePrompt: 'またはコードを貼り付け:',
+                    connect: '接続',
+                    answerShow: 'この回答コードを招待した端末に見せてください。',
+                    waiting: '接続を待っています…',
+                    connected: '接続しました！',
+                    noCamera: 'カメラが使えない場合は、コードをコピーして共有してください。',
+                    stopScan: 'カメラを停止'
+                }
+            });
+            if (peerId) renderNetworkStatus();
+        } catch (error) {
+            console.warn('manual pairing failed:', error);
+            if (networkStatus) {
+                networkStatus.textContent = 'P2P · PAIRING FAILED';
+                networkStatus.title = error?.message || String(error);
+                networkStatus.dataset.state = 'warning';
+            }
+        }
+    });
+}
 
 const canvas = document.getElementById("world");
 const ctx = canvas.getContext("2d");
